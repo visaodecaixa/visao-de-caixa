@@ -26,6 +26,16 @@ export default function App() {
   const [transacoes, setTransacoes] = useState([]); 
 
   useEffect(() => {
+    // Injeta o script do Google dinamicamente se não estiver presente
+    if (!document.getElementById('google-gsi-script')) {
+      const script = document.createElement('script');
+      script.id = 'google-gsi-script';
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+
     try {
       const transSalvas = localStorage.getItem('@transacoes');
       const contasSalvas = localStorage.getItem('@contas');
@@ -58,7 +68,10 @@ export default function App() {
   const [textoImportacao, setTextoImportacao] = useState('');
 
   const iniciarLoginGoogle = () => {
-    if (!window.google) { alert("Script do Google carregando. Adicione no index.html."); return; }
+    if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) { 
+      alert("O script do Google pode estar sendo bloqueado por um bloqueador de anúncios (AdBlock/uBlock) ou pelas proteções do navegador. Desative o bloqueador para esta página e tente novamente."); 
+      return; 
+    }
     const client = window.google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file',
       callback: (tokenResponse) => {
