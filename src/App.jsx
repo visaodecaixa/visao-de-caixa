@@ -11,9 +11,6 @@ export default function App() {
   const [abaAtiva, setAbaAtiva] = useState('Extrato'); 
   const [dadosProntos, setDadosProntos] = useState(false);
 
-  // ==========================================
-  // CÉREBRO DO APP E ESTADOS LOCAIS
-  // ==========================================
   const [contasGlobais, setContasGlobais] = useState([]); 
   const [categoriasGlobais, setCategoriasGlobais] = useState([
     { id: 'cat_ra', nome: 'Renda Ativa', tipo: 'receita', cor: '#e8f5e9', subs: [{id: 's_ra1', nome: 'Salário'}, {id: 's_ra2', nome: 'Extra'}, {id: 's_ra3', nome: 'Vendas'}] },
@@ -26,16 +23,6 @@ export default function App() {
   const [transacoes, setTransacoes] = useState([]); 
 
   useEffect(() => {
-    // Injeta o script do Google dinamicamente se não estiver presente
-    if (!document.getElementById('google-gsi-script')) {
-      const script = document.createElement('script');
-      script.id = 'google-gsi-script';
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      document.body.appendChild(script);
-    }
-
     try {
       const transSalvas = localStorage.getItem('@transacoes');
       const contasSalvas = localStorage.getItem('@contas');
@@ -58,9 +45,6 @@ export default function App() {
   useEffect(() => { if(dadosProntos) localStorage.setItem('@contas', JSON.stringify(contasGlobais)); }, [contasGlobais, dadosProntos]);
   useEffect(() => { if(dadosProntos) localStorage.setItem('@categorias', JSON.stringify(categoriasGlobais)); }, [categoriasGlobais, dadosProntos]);
 
-  // ==========================================
-  // INTEGRAÇÃO: GOOGLE DRIVE E BACKUP MANUAL
-  // ==========================================
   const [googleToken, setGoogleToken] = useState(null);
   const [driveFileId, setDriveFileId] = useState(null);
   const [statusNuvem, setStatusNuvem] = useState('Desconectado');
@@ -69,7 +53,7 @@ export default function App() {
 
   const iniciarLoginGoogle = () => {
     if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) { 
-      alert("O script do Google pode estar sendo bloqueado por um bloqueador de anúncios (AdBlock/uBlock) ou pelas proteções do navegador. Desative o bloqueador para esta página e tente novamente."); 
+      alert("O script do Google está carregando ou foi bloqueado por extensão. Aguarde alguns segundos."); 
       return; 
     }
     const client = window.google.accounts.oauth2.initTokenClient({
@@ -165,9 +149,6 @@ export default function App() {
     } catch (e) { alert('Erro ao ler texto.'); }
   };
 
-  // ==========================================
-  // ESTADOS GERAIS
-  // ==========================================
   const [tipoLancamento, setTipoLancamento] = useState('Despesa');
   const [descInput, setDescInput] = useState('');
   const [valorInput, setValorInput] = useState('');
@@ -337,7 +318,6 @@ export default function App() {
     );
   };
 
-  // Funções de Configuração
   const adicionarCategoria = () => { if(!novaCatInput.trim()) return; setCategoriasGlobais([...categoriasGlobais, { id: Date.now().toString(), nome: novaCatInput, tipo: novaCatTipo, cor: '#e2e8f0', subs: [] }]); setNovaCatInput(''); };
   const removerCategoria = (id) => { if(categoriasGlobais.length <= 1) { alert('Mantenha pelo menos uma categoria!'); return; } setCategoriasGlobais(categoriasGlobais.filter(c => c.id !== id)); };
   const salvarEdicaoCategoria = (catId) => { if (!catEditandoNome.trim()) return; setCategoriasGlobais(categoriasGlobais.map(cat => cat.id === catId ? { ...cat, nome: catEditandoNome.trim() } : cat)); setCatEditandoId(null); setCatEditandoNome(''); };
@@ -347,7 +327,6 @@ export default function App() {
   const adicionarConta = () => { if(!novaContaInput.trim()) return; setContasGlobais([...contasGlobais, { id: Date.now().toString(), nome: novaContaInput }]); setNovaContaInput(''); };
   const removerConta = (id) => setContasGlobais(contasGlobais.filter(c => c.id !== id));
 
-  // RENDER: Formulário
   const renderFormulario = (modo) => {
     const isEdit = modo === 'Editar';
     const categoriasExibidas = categoriasGlobais.filter(c => c.tipo === tipoLancamento.toLowerCase());
@@ -439,7 +418,6 @@ export default function App() {
     );
   };
 
-  // RENDER: Extrato
   const renderExtrato = () => {
     const transacoesContaFiltrada = transacoes.filter(t => !contasInativasExtrato.includes(t.conta));
     const transacoesOrdenadasGeral = [...transacoesContaFiltrada].sort((a, b) => a.dataObj - b.dataObj);
@@ -523,7 +501,6 @@ export default function App() {
     );
   };
 
-  // RENDER: Relatório (COMPLETO)
   const renderRelatorio = () => {
     const toggleConta = (nomeConta) => { contasInativasRelat.includes(nomeConta) ? setContasInativasRelat(contasInativasRelat.filter(c => c !== nomeConta)) : setContasInativasRelat([...contasInativasRelat, nomeConta]); };
 
@@ -612,7 +589,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* DETALHAMENTO CATEGORIAS */}
             {['receita', 'despesa'].map(tipoAtual => {
               const isReceita = tipoAtual === 'receita';
               const categoriasMap = isReceita ? receitasPorCategoria : despesasPorCategoria;
@@ -742,7 +718,6 @@ export default function App() {
     );
   };
 
-  // RENDER: Configurações
   const renderConfig = () => {
     const categoriasConfigExibidas = categoriasGlobais.filter(cat => cat.tipo === novaCatTipo);
     return (
